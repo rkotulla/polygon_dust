@@ -16,6 +16,25 @@ import argparse
 
 # bufferzone = 3
 
+def calzetti(wl):
+    micron = numpy.array(wl) / 1e4
+    print("microns", micron)
+    print(1.04 / micron)
+    red_part = micron > 0.63
+    blue = ~red_part
+
+    print("red part:", red_part)
+    koeff = numpy.zeros_like(micron, dtype=numpy.float)
+    print("raw koeff:", koeff)
+    koeff[red_part] = 2.659 * (-1.857 + 1.040 / micron[red_part]) + 4.05
+    koeff[blue] = 2.659 * (
+                -2.156 + (1.509 / micron[blue]) - 0.198 / micron[blue] ** 2 + 0.011 / micron[blue] ** 3) + 4.05
+
+    print("final koeff:", koeff)
+    return koeff
+
+
+
 def measure_polygons(polygon_list, image, wcs, edgewidth=1):
 
     bufferzone = edgewidth + 2
@@ -191,8 +210,9 @@ if __name__ == "__main__":
         wcs = astropy.wcs.WCS(image_hdu['SCI'].header)
         print(wcs)
 
-        photflam = image_hdu['SCI'].header['PHOTFLAM']
-        photplam = image_hdu['SCI'].header['PHOTPLAM']
+        sci_hdr = image_hdu['SCI'].header
+        photflam = sci_hdr['PHOTFLAM']
+        photplam = sci_hdr['PHOTPLAM']
         zp_ab = -2.5*numpy.log10(photflam) - 5*numpy.log10(photplam) - 2.408
         print("ZP_AB = %f" % (zp_ab))
         # see https://www.stsci.edu/hst/instrumentation/acs/data-analysis/zeropoints
@@ -273,10 +293,21 @@ if __name__ == "__main__":
         df['transmission'] = df['PolyMean'] / df['Edge_Median']
         df['optical_depth'] = -1 * numpy.log(df['transmission'])
 
+        # convert optical depth to A_X (in this filter) -- the factor 1.087 = 2.5 / e
+        df['A_X'] = df['optical_depth'] / 1.087
 
-        transmission_constant_f435w = 1.3e21
-        df['number_atoms'] = transmission_constant_f435w * df['optical_depth'] # for the F435W filter
-        mass_per_atom = 2.2e-24 # that's in grams
+        # convert A_X into A_V, assuming a standard extinction law
+        lambda_V = 5555
+        lambda_X = sci_hdr['PHOTPLAM']
+        dust_koeffs = calzetti([lambda_V, lambda_X])
+        df['A_V'] = df['A_X'] * dust_koeffs[1]/dust_koeffs[0]
+
+        # transmission_constant_f435w = 1.3e21
+        draine_constant = 5.3e22
+        df['number_atoms'] = draine_constant * df['A_V']
+        # df['number_atoms'] = transmission_constant_f435w * df['optical_depth']  # for the F435W filter
+
+        mass_per_atom = 2.3e-24 # that's in grams (using some cosmic mix of H, He, metals)
         df['dustmass_grams'] = df['number_atoms'] * mass_per_atom * df['area_cm2']
         df['dustmass_solarmasses'] = df['dustmass_grams'] / 2.e33
 
@@ -299,6 +330,8 @@ if __name__ == "__main__":
         # print(sky_data)
         # print("\n\nSources:")
         # print(src_data)
+
+
 
         print("done with image %s" % (image_fn))
 
