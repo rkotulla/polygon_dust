@@ -272,13 +272,21 @@ if __name__ == "__main__":
         df.reset_index(inplace=True)
 
         bad_photometry = df['IntegratedFlux'] <= 0
-        
-        df['InstrumentalMagnitude'] = -2.5*numpy.log10(df['IntegratedFlux'])
-        df['Magnitude_AB'] = df['InstrumentalMagnitude'] + zp_ab
 
-        df['InstrumentalMagnitude'][bad_photometry] = 99.999
-        df['Magnitude_AB'][bad_photometry] = 99.999
-        
+        def flux2mag(f):
+            out = numpy.full_like(f, fill_value=99.9)
+            out[f>0] = -2.5*numpy.log10(f[f>0])
+            return out
+        df['InstrumentalMagnitude'] = flux2mag(df['IntegratedFlux'])
+                                      #-2.5*numpy.log10(df['IntegratedFlux'])
+        good_flux = df['IntegratedFlux'] > 0
+        df.loc[good_flux, 'Magnitude_AB'] = df.loc[good_flux, 'InstrumentalMagnitude'] + zp_ab
+
+        # df.loc[:, 'InstrumentalMagnitude'][bad_photometry] = 99.999
+        # df.loc[:, 'Magnitude_AB'][bad_photometry] = 99.999
+        df.loc[bad_photometry, 'InstrumentalMagnitude'] = 99.999
+        df.loc[bad_photometry, 'Magnitude_AB'] = 99.999
+
         # # calculate distance from center in pixels
         # df['change_in_x'] = df['Mean_X'] - 2051.3312
         # df['change_in_y'] = df['Mean_Y'] - 2560.5258
