@@ -143,8 +143,12 @@ if __name__ == "__main__":
                          help='region filename for initial cutout')
     cmdline.add_argument("--distance", dest="distance", default=0., type=float,
                          help='distance to galaxy in Mpc')
-    cmdline.add_argument("--output", dest="output_fn", default="prepped_phot.csv", type=str,
+    cmdline.add_argument("--output", dest="output_fn", default="poly2dust", type=str,
                          help='filename for output file')
+    cmdline.add_argument("--votout", dest="output_vot", default=None, type=str,
+                         help='filename for output file in VOTtable format')
+    cmdline.add_argument("--csvout", dest="output_csv", default=None, type=str,
+                         help='filename for output file in CSV format')
     cmdline.add_argument("--reffits", dest="ref_fits", default="prep4gazelle_ref.fits", type=str,
                          help='reference fits file')
     cmdline.add_argument("files", nargs="+",
@@ -378,9 +382,15 @@ if __name__ == "__main__":
 
         print("done with image %s" % (image_fn))
 
-    master_df.info()
+    # master_df.info()
 
+    vot_fn = args.output_vot if args.output_vot is not None else args.output_fn+".vot"
+    print("Saving output catalog to %s" % (vot_fn))
     outtable = astropy.table.Table.from_pandas(master_df)
-    outtable.write("combined.vot", format='votable', overwrite=True)
+    outtable.write(vot_fn, format='votable', overwrite=True)
+
+    csv_fn = args.output_csv if args.output_csv is not None else args.output_fn+".csv"
+    print("Saving output catalog to %s" % (csv_fn))
+    master_df.to_csv(csv_fn)
 
     print("all done!")
