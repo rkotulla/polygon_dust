@@ -196,6 +196,10 @@ if __name__ == "__main__":
     #
     # Let's run the integration code on all files, one after another
     #
+    master_df = None
+    reference_index = None
+    print("Starting work on the following image files:\n -- "+"\n -- ".join(args.files))
+
     for image_fn in args.files:
 
         print("Working on image file %s (regions: %s)" % (image_fn, region_fn))
@@ -334,7 +338,16 @@ if __name__ == "__main__":
         # also save as a votable for ds9
         table = astropy.table.Table.from_pandas(df)
         table.write(image_fn[:-5]+"_polygonflux.vot", format='votable', overwrite=True)
-        
+
+        # rename column names to something filter-specific
+        filter_colnames = {}
+        for c in df.columns:
+            # if (c == "index"):
+            #     continue
+            filter_colnames[c] = "%s_%s" % (filtername, c)
+        df = df.rename(columns=filter_colnames)
+        # df.info()
+
         # print("\n\nSKY:")
         # print(sky_data)
         # print("\n\nSources:")
@@ -342,6 +355,32 @@ if __name__ == "__main__":
 
 
 
+        if (master_df is None):
+            master_df = df
+            reference_index = "%s_index" % (filtername)
+            master_df.reset_index(inplace=True)
+        else:
+            # master_df.info()
+            # df.info()
+
+            master_df = master_df.merge(
+                df, left_index=True, #left_on=reference_index,
+                right_on="%s_index" % (filtername)
+            )
+            # print("\n"*20)
+            # master_df.info()
+            # break
+            # master_df = master_df.join(df)
+            # master_df = master_df.merge(df, left_index=True, right_index=True)
+        # master_df.reset_index(columns="%s_index" % (filtername), inplace=True)
+        # master_df.reindex_like(df)
+
+
         print("done with image %s" % (image_fn))
+
+    master_df.info()
+
+    outtable = astropy.table.Table.from_pandas(master_df)
+    outtable.write("combined.vot", format='votable', overwrite=True)
 
     print("all done!")
