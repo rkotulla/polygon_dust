@@ -149,8 +149,6 @@ if __name__ == "__main__":
                          help='filename for output file in VOTtable format')
     cmdline.add_argument("--csvout", dest="output_csv", default=None, type=str,
                          help='filename for output file in CSV format')
-    cmdline.add_argument("--reffits", dest="ref_fits", default="prep4gazelle_ref.fits", type=str,
-                         help='reference fits file')
     cmdline.add_argument("files", nargs="+",
                          help="list of input filenames")
     args = cmdline.parse_args()
