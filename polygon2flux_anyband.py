@@ -18,19 +18,19 @@ import argparse
 
 def calzetti(wl):
     micron = numpy.array(wl) / 1e4
-    print("microns", micron)
-    print(1.04 / micron)
+    # print("microns", micron)
+    # print(1.04 / micron)
     red_part = micron > 0.63
     blue = ~red_part
 
-    print("red part:", red_part)
+    # print("red part:", red_part)
     koeff = numpy.zeros_like(micron, dtype=numpy.float)
-    print("raw koeff:", koeff)
+    # print("raw koeff:", koeff)
     koeff[red_part] = 2.659 * (-1.857 + 1.040 / micron[red_part]) + 4.05
     koeff[blue] = 2.659 * (
                 -2.156 + (1.509 / micron[blue]) - 0.198 / micron[blue] ** 2 + 0.011 / micron[blue] ** 3) + 4.05
 
-    print("final koeff:", koeff)
+    # print("final koeff:", koeff)
     return koeff
 
 
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     sky_polygons = []
     with open(region_fn, "r") as regfile:
         lines = regfile.readlines()
-        print("Read %d lines" % (len(lines)))
+        # print("Read %d lines" % (len(lines)))
 
     for line in lines:
         if (not line.startswith("polygon(")):
@@ -208,13 +208,13 @@ if __name__ == "__main__":
 
         image_data = image_hdu['SCI'].data
         wcs = astropy.wcs.WCS(image_hdu['SCI'].header)
-        print(wcs)
+        # print(wcs)
 
         sci_hdr = image_hdu['SCI'].header
         photflam = sci_hdr['PHOTFLAM']
         photplam = sci_hdr['PHOTPLAM']
         zp_ab = -2.5*numpy.log10(photflam) - 5*numpy.log10(photplam) - 2.408
-        print("ZP_AB = %f" % (zp_ab))
+        # print("ZP_AB = %f" % (zp_ab))
         # see https://www.stsci.edu/hst/instrumentation/acs/data-analysis/zeropoints
 
         # get a filtername
@@ -227,19 +227,19 @@ if __name__ == "__main__":
             filtername = filter1
         else:
             filtername = "%s_%s" % (filter1, filter2)
-        print("FILTERNAME:", filtername)
+        # print("FILTERNAME:", filtername)
 
         # get size of a pixel in degrees
         _pixelsize = astropy.wcs.utils.proj_plane_pixel_scales(wcs)
         pixelsize_degrees = _pixelsize[0]
-        print("pixelsize: %f deg = %f arcsec" % (pixelsize_degrees, pixelsize_degrees*3600.))
+        # print("pixelsize: %f deg = %f arcsec" % (pixelsize_degrees, pixelsize_degrees*3600.))
         # convert pixelsize from degrees into cm
         pixelsize_cm = numpy.tan(numpy.deg2rad(pixelsize_degrees)) * distance_cm
         pixelsize_kpc = numpy.tan(numpy.deg2rad(pixelsize_degrees)) * distance_mpc * 1000.
 
-        print("integrating sky polygons")
+        # print("integrating sky polygons")
         _, sky_data = measure_polygons(sky_polygons, image_data, wcs)
-        print("integrating source polygons")
+        # print("integrating source polygons")
         src_images, src_data = measure_polygons(src_polygons, image_data, wcs)
 
         src_mask, src_edges = src_images
@@ -251,7 +251,7 @@ if __name__ == "__main__":
         # Figure out the average sky background level
         #
         median_sky_level = numpy.median( sky_data[:,1]/sky_data[:,0] )
-        print("Median sky = %f" % (median_sky_level))
+        # print("Median sky = %f" % (median_sky_level))
 
         # now apply a sky background subtraction for all source polygons
         background_subtracted_src_data = src_data.copy()
@@ -269,6 +269,7 @@ if __name__ == "__main__":
             "Edge_Median": background_subtracted_src_data[:,5],
             "Edge_Area": background_subtracted_src_data[:,6],
             })
+        df.reset_index(inplace=True)
 
         bad_photometry = df['IntegratedFlux'] <= 0
         
@@ -311,7 +312,7 @@ if __name__ == "__main__":
         df['dustmass_grams'] = df['number_atoms'] * mass_per_atom * df['area_cm2']
         df['dustmass_solarmasses'] = df['dustmass_grams'] / 2.e33
 
-        print(df['dustmass_solarmasses'])
+        # print(df['dustmass_solarmasses'])
 
         # convert mean_x/mean_y to ra/dec
         mean_ra_dec = wcs.all_pix2world(df['Mean_X'], df['Mean_Y'], 1.)
@@ -319,7 +320,7 @@ if __name__ == "__main__":
         df['RA'] = mean_ra_dec[0]
         df['DEC'] = mean_ra_dec[1]
 
-        df.info()
+        # df.info()
         df.to_csv(image_fn[:-5]+"_polygonflux.csv")
 
         # also save as a votable for ds9
