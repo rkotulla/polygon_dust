@@ -212,11 +212,16 @@ if __name__ == "__main__":
         image_hdu = pyfits.open(image_fn)
         # image_hdu.info()
 
-        image_data = image_hdu['SCI'].data
+        try:
+            image_data = image_hdu['SCI'].data
+            sci_hdr = image_hdu['SCI'].header
+        except:
+            image_data = image_hdu[0].data
+            sci_hdr = image_hdu[0].header
+
         wcs = astropy.wcs.WCS(image_hdu['SCI'].header)
         # print(wcs)
 
-        sci_hdr = image_hdu['SCI'].header
         photflam = sci_hdr['PHOTFLAM']
         photplam = sci_hdr['PHOTPLAM']
         zp_ab = -2.5*numpy.log10(photflam) - 5*numpy.log10(photplam) - 2.408
