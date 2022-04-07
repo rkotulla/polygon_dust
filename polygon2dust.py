@@ -219,7 +219,7 @@ if __name__ == "__main__":
             image_data = image_hdu[0].data
             sci_hdr = image_hdu[0].header
 
-        wcs = astropy.wcs.WCS(image_hdu['SCI'].header)
+        wcs = astropy.wcs.WCS(sci_hdr)
         # print(wcs)
 
         photflam = sci_hdr['PHOTFLAM']
