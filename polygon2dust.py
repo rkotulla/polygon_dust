@@ -192,6 +192,11 @@ if __name__ == "__main__":
         len(src_polygons), len(sky_polygons)
     ))
 
+    if (len(src_polygons) < 1):
+        print("No source polygons defined, nothing to do")
+        sys.exit(0)
+
+
     distance_mpc = args.distance
     distance_cm = distance_mpc * 3.086e24
 
@@ -396,7 +401,7 @@ if __name__ == "__main__":
 
         print("done with image %s" % (image_fn))
 
-    # master_df.info()
+    master_df.info()
     try:
         vot_fn = args.output_vot if args.output_vot is not None else args.output_fn+".vot"
         print("Saving output catalog to %s" % (vot_fn))
