@@ -212,6 +212,7 @@ if __name__ == "__main__":
         image_hdu = pyfits.open(image_fn)
         # image_hdu.info()
 
+        # attempt to handle both fits strcuture scenarios - when the file is just an
         try:
             image_data = image_hdu['SCI'].data
             sci_hdr = image_hdu['SCI'].header
@@ -261,7 +262,12 @@ if __name__ == "__main__":
         #
         # Figure out the average sky background level
         #
-        median_sky_level = numpy.median( sky_data[:,1]/sky_data[:,0] )
+        try:
+            median_sky_level = numpy.median( sky_data[:,1]/sky_data[:,0] )
+        except:
+            print("Unable to estimate sky, setting to zero")
+            median_sky_level = 0.
+
         # print("Median sky = %f" % (median_sky_level))
 
         # now apply a sky background subtraction for all source polygons
