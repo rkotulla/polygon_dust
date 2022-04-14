@@ -207,7 +207,7 @@ if __name__ == "__main__":
     reference_index = None
     print("Starting work on the following image files:\n -- "+"\n -- ".join(args.files))
 
-    for image_fn in args.files:
+    for i_image, image_fn in enumerate(args.files):
 
         print("Working on image file %s (regions: %s)" % (image_fn, region_fn))
 
@@ -242,6 +242,8 @@ if __name__ == "__main__":
             filtername = filter2
         elif (filter1 is not None and (filter2 is None or filter2.startswith("CLEAR"))):
             filtername = filter1
+        elif (filter1 is None and filter2 is None):
+            filtername = "FILE%02d" % (i_image+1)
         else:
             filtername = "%s_%s" % (filter1, filter2)
         # print("FILTERNAME:", filtername)
