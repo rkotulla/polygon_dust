@@ -349,8 +349,13 @@ if __name__ == "__main__":
         df.to_csv(image_fn[:-5]+"_polygonflux.csv")
 
         # also save as a votable for ds9
-        table = astropy.table.Table.from_pandas(df)
-        table.write(image_fn[:-5]+"_polygonflux.vot", format='votable', overwrite=True)
+        try:
+            table = astropy.table.Table.from_pandas(df)
+            table.write(image_fn[:-5]+"_polygonflux.vot", format='votable', overwrite=True)
+        except Exception as e:
+            print(e)
+            print("Ignoring this error")
+            pass
 
         # rename column names to something filter-specific
         filter_colnames = {}
@@ -392,11 +397,14 @@ if __name__ == "__main__":
         print("done with image %s" % (image_fn))
 
     # master_df.info()
-
-    vot_fn = args.output_vot if args.output_vot is not None else args.output_fn+".vot"
-    print("Saving output catalog to %s" % (vot_fn))
-    outtable = astropy.table.Table.from_pandas(master_df)
-    outtable.write(vot_fn, format='votable', overwrite=True)
+    try:
+        vot_fn = args.output_vot if args.output_vot is not None else args.output_fn+".vot"
+        print("Saving output catalog to %s" % (vot_fn))
+        outtable = astropy.table.Table.from_pandas(master_df)
+        outtable.write(vot_fn, format='votable', overwrite=True)
+    except Exception as e:
+        print(e)
+        print("Ignoring this problem")
 
     csv_fn = args.output_csv if args.output_csv is not None else args.output_fn+".csv"
     print("Saving output catalog to %s" % (csv_fn))
