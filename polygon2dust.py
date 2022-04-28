@@ -270,7 +270,8 @@ if __name__ == "__main__":
         # Figure out the average sky background level
         #
         try:
-            median_sky_level = numpy.median( sky_data[:,1]/sky_data[:,0] )
+            median_sky_level = float(numpy.median( sky_data[:,1]/sky_data[:,0] ))
+            print("Subtracting sky level of %f" % (median_sky_level))
         except:
             print("Unable to estimate sky, setting to zero")
             median_sky_level = 0.
