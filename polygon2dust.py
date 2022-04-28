@@ -105,10 +105,10 @@ def measure_polygons(polygon_list, image, wcs, edgewidth=1):
         n_pixels = float(numpy.sum(inside2))
 
         # set some default values in case things go wrong down the line
-        total_flux = -1
-        center_x = -1
-        center_y = -1
-        edge_mean = edge_median = edge_area = -1
+        total_flux = -1.
+        center_x = -1.
+        center_y = -1.
+        edge_mean = edge_median = edge_area = -1.
 
         if (n_pixels >= 1):
             total_flux = numpy.sum(image_region[inside2d])
@@ -280,6 +280,7 @@ if __name__ == "__main__":
 
         # now apply a sky background subtraction for all source polygons
         background_subtracted_src_data = src_data.copy()
+        zero_size_polygon = (background_subtracted_src_data[:,0] <= 0)
         background_subtracted_src_data[:,1] -= background_subtracted_src_data[:,0] * median_sky_level
 
         background_subtracted_src_data[:,4] -= median_sky_level
