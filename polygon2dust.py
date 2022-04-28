@@ -102,7 +102,7 @@ def measure_polygons(polygon_list, image, wcs, edgewidth=1):
         edge_image_region = edge_image[ min_y:max_y+1, min_x:max_x+1 ]
         edge_image_region[edge_only_pixels] += 1
 
-        n_pixels = numpy.sum(inside2)
+        n_pixels = float(numpy.sum(inside2))
 
         # set some default values in case things go wrong down the line
         total_flux = -1
